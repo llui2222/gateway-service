@@ -1,0 +1,26 @@
+version: "3"
+services:
+  gateway-service:
+    image: $RELEASE_IMAGE
+    environment:
+      SERVER_PORT: 10000
+      LOGGING_MODE: logstash
+      DEPLOY_HOST: gateway-service
+      EUREKA_SERVER_LIST: http://eureka-peer-1:8761/eureka/,http://eureka-peer-2:8761/eureka/
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      labels:
+        - traefik.port=10000
+        - traefik.frontend.rule=PathPrefixStrip:/api
+        - traefik.docker.network=reverse-proxy-net
+    networks:
+      - tpam
+      - reverse-proxy-net
+
+networks:
+  tpam:
+    external: true
+  reverse-proxy-net:
+    external: true

@@ -1,0 +1,76 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.4.RELEASE'
+        gradleReleaseVersion = '2.4.0'
+    }
+    repositories {
+        maven {
+            url project.nexus_url + "/content/groups/public"
+            credentials {
+                username = project.nexus_user
+                password = project.nexus_password
+            }
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("net.researchgate:gradle-release:${gradleReleaseVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'net.researchgate.release'
+
+group = 'com.tpam.service'
+sourceCompatibility = 1.8
+
+repositories {
+    maven {
+        url project.nexus_url + "/content/groups/public"
+        credentials {
+            username = project.nexus_user
+            password = project.nexus_password
+        }
+    }
+}
+
+ext {
+    springCloudVersion = 'Finchley.SR1'
+    jjwtVersion = '0.9.1'
+}
+
+dependencies {
+    implementation('org.springframework.cloud:spring-cloud-starter-config')
+    implementation('org.springframework.cloud:spring-cloud-starter-netflix-zuul')
+    implementation('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client')
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('io.micrometer:micrometer-registry-prometheus')
+    implementation('org.springframework.retry:spring-retry')
+    implementation("io.jsonwebtoken:jjwt:${jjwtVersion}")
+    runtime('net.logstash.logback:logstash-logback-encoder:5.2')
+    runtime('org.codehaus.janino:janino')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: project.nexus_url + "/content/repositories/releases") {
+                authentication(userName: project.nexus_user, password: project.nexus_password)
+            }
+            snapshotRepository(url: project.nexus_url + "/content/repositories/snapshots/") {
+                authentication(userName: project.nexus_user, password: project.nexus_password)
+            }
+        }
+    }
+}
